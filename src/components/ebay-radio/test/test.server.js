@@ -1,27 +1,24 @@
-import { expect, use } from 'chai';
-import { render } from '@marko/testing-library';
-import template from '..';
-const { testPassThroughAttributes } = require('../../../common/test-utils/server');
+import { it, expect } from "vitest";
+import { render } from "@marko/testing-library";
+import { testPassThroughAttributes } from "../../../common/test-utils/server";
+import template from "../index.marko";
 
-use(require('chai-dom'));
-
-it('renders default radio', async () => {
+it("renders default radio", async () => {
     const { getByRole } = await render(template);
-    const radioControl = getByRole('radio');
-    expect(radioControl).to.have.class('radio__control');
-    expect(radioControl.parentElement).to.have.class('radio');
-    expect(radioControl.nextElementSibling).to.have.class('radio__icon');
-    expect(radioControl).to.have.property('disabled', false);
+    const radioControl = getByRole("radio");
+    expect(radioControl).toMatchSnapshot();
+    expect(radioControl.parentElement).toMatchSnapshot();
+    expect(radioControl.nextElementSibling).toMatchSnapshot();
 });
 
-it('renders disabled radio', async () => {
+it("renders disabled radio", async () => {
     const { getByRole } = await render(template, { disabled: true });
-    const radioControl = getByRole('radio');
-    expect(radioControl).to.have.property('disabled', true);
+    const radioControl = getByRole("radio");
+    expect(radioControl).toMatchSnapshot();
 });
 
 testPassThroughAttributes(template, {
     getClassAndStyleEl(component) {
-        return component.getByRole('radio').parentElement;
+        return component.getByRole("radio").parentElement;
     },
 });

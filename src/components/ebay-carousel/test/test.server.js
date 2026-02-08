@@ -1,92 +1,96 @@
-import { expect, use } from 'chai';
-import { render } from '@marko/testing-library';
-import template from '..';
-import * as mock from './mock';
-const { testPassThroughAttributes } = require('../../../common/test-utils/server');
+import { describe, it, expect } from "vitest";
 
-use(require('chai-dom'));
+import { render } from "@marko/testing-library";
+import { testPassThroughAttributes } from "../../../common/test-utils/server";
+import template from "../index.marko";
+import * as mock from "./mock";
 
-describe('carousel', () => {
-    describe('with discrete items per slide', () => {
-        it('renders base version', async () => {
+describe("carousel", () => {
+    describe("with discrete items per slide", () => {
+        it("renders base version", async () => {
             const input = mock.discrete1PerSlide3Items;
             const { queryByText, getByRole } = await render(template, input);
 
-            expect(getByRole('group')).to.have.attr('aria-roledescription');
+            expect(getByRole("group")).toMatchSnapshot();
 
-            input.items.forEach((item) =>
-                expect(queryByText(item.renderBody.text)).not.to.equal(null)
+            input.item.forEach((item) =>
+                expect(queryByText(item.renderBody.text)).toMatchSnapshot(),
             );
         });
 
-        describe('with hidden scrollbar', () => {
-            it('renders', async () => {
+        describe("with hidden scrollbar", () => {
+            it("renders", async () => {
                 const input = Object.assign({}, mock.discrete1PerSlide3Items, {
                     hiddenScrollbar: true,
                 });
                 const { getByRole } = await render(template, input);
 
-                expect(getByRole('group')).to.have.class('carousel--hidden-scrollbar');
+                expect(getByRole("group")).toMatchSnapshot();
             });
         });
 
-        it('renders without any provided items', async () => {
+        it("renders without any provided items", async () => {
             const input = mock.discrete1PerSlide0Items;
             const { getByLabelText } = await render(template, input);
 
-            expect(getByLabelText(input.a11yPreviousText)).has.attr('aria-disabled', 'true');
-            expect(getByLabelText(input.a11yNextText)).has.attr('aria-disabled', 'true');
+            expect(getByLabelText(input.a11yPreviousText)).toMatchSnapshot();
+            expect(getByLabelText(input.a11yNextText)).toMatchSnapshot();
         });
 
-        describe('with autoplay enabled', () => {
-            it('renders base version', async () => {
+        describe("with autoplay enabled", () => {
+            it("renders base version", async () => {
                 const input = mock.discrete1PerSlide3ItemsAutoPlay;
                 const { queryByLabelText } = await render(template, input);
 
-                expect(queryByLabelText(input.a11yPauseText)).to.not.equal(null);
+                expect(queryByLabelText(input.a11yPauseText)).toMatchSnapshot();
             });
 
-            it('renders paused version', async () => {
-                const input = Object.assign({}, mock.discrete1PerSlide3ItemsAutoPlay, {
-                    paused: true,
-                });
+            it("renders paused version", async () => {
+                const input = Object.assign(
+                    {},
+                    mock.discrete1PerSlide3ItemsAutoPlay,
+                    {
+                        paused: true,
+                    },
+                );
                 const { queryByLabelText } = await render(template, input);
 
-                expect(queryByLabelText(input.a11yPlayText)).to.not.equal(null);
+                expect(queryByLabelText(input.a11yPlayText)).toMatchSnapshot();
             });
         });
     });
 
-    describe('without items per slide (continuous)', () => {
-        it('renders base version', async () => {
+    describe("without items per slide (continuous)", () => {
+        it("renders base version", async () => {
             const input = mock.continuous6Items;
-            const { queryByText, queryByLabelText, getByLabelText } = await render(template, input);
+            const { queryByText, queryByLabelText, getByLabelText } =
+                await render(template, input);
 
             // Also it should not have the dot controls.
-            expect(queryByLabelText(/go to slide/)).equals(null);
+            expect(queryByLabelText(/go to slide/)).toMatchSnapshot();
 
             // Controls should not be linked to the status text (slide x of y).
-            expect(getByLabelText(input.a11yPreviousText)).not.has.attr('aria-describedby');
-            expect(getByLabelText(input.a11yNextText)).not.has.attr('aria-describedby');
+            expect(getByLabelText(input.a11yPreviousText)).toMatchSnapshot();
+            expect(getByLabelText(input.a11yNextText)).toMatchSnapshot();
 
-            input.items.forEach((item) =>
-                expect(queryByText(item.renderBody.text)).does.not.equal(null)
+            input.item.forEach((item) =>
+                expect(queryByText(item.renderBody.text)).toMatchSnapshot(),
             );
         });
 
-        it('renders without any provided items', async () => {
+        it("renders without any provided items", async () => {
             const input = mock.continuous0Items;
             const { getByLabelText } = await render(template, input);
 
-            expect(getByLabelText(input.a11yPreviousText)).has.attr('aria-disabled', 'true');
-            expect(getByLabelText(input.a11yNextText)).has.attr('aria-disabled', 'true');
+            expect(getByLabelText(input.a11yPreviousText)).toMatchSnapshot();
+            expect(getByLabelText(input.a11yNextText)).toMatchSnapshot();
         });
     });
 
     testPassThroughAttributes(template);
     testPassThroughAttributes(template, {
         child: {
-            name: 'items',
+            name: "item",
             multiple: true,
         },
     });

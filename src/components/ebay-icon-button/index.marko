@@ -1,45 +1,67 @@
 import { processHtmlAttributes } from "../../common/html-attributes"
 
-static function toJSON() {
+static const VALID_SIZES = ['small', 'large']
+static var validPriorities = [
+    'primary',
+    'secondary',
+    'tertiary'
+];
+
+static function toJSON(this: any) {
     return {
         disabled: this.disabled
     };
 }
 
-static var ignoredAttributes = [
-    "partiallyDisabled",
-    "badgeNumber",
-    "badgeAriaLabel",
-    "toJSON"
-];
+$ const {
+    ariaLabel,
+    badgeAriaLabel,
+    badgeNumber,
+    href,
+    priority = "none",
+    partiallyDisabled,
+    renderBody,
+    size,
+    transparent,
+    type,
+    class: inputClass,
+    ...htmlInput
+} = input;
 
-$ {
-    input.toJSON = toJSON;
-    var isBadged = Boolean(input.badgeNumber);
-    var tag = input.href ? "a" : "button";
-    var htmlAttributes = processHtmlAttributes(data, ignoredAttributes);
+$ (input as any).toJSON = toJSON;
+$ let tagType = "button";
+$ let baseClassName = "icon-btn";
+$ if(href) {
+    tagType = "a";
+    baseClassName = "icon-link";
 }
-<${tag}
-    ...htmlAttributes
+
+<${tagType}
+    ...processHtmlAttributes(htmlInput)
     onClick("handleClick")
     onKeydown("handleKeydown")
     onFocus('handleFocus')
     onBlur('handleBlur')
+    aria-label=ariaLabel
+    href=href
     class=[
-        input.class,
-        'icon-btn',
-        isBadged && `icon-btn--badged`
+        inputClass,
+        baseClassName,
+        badgeNumber && `${baseClassName}--badged`,
+        transparent && `${baseClassName}--transparent`,
+        (validPriorities.includes(priority) &&
+        `${baseClassName}--${priority}`),
+        size && VALID_SIZES.includes(size) && `${baseClassName}--${size}`
     ]
     data-ebayui=true
-    type=(tag === "button" && (input.type || "button"))
-    aria-disabled=(input.partiallyDisabled && "true")>
-    $ var hasAriaLabel = Boolean(htmlAttributes["aria-label"]);
-    <${input.renderBody}/>
-    <if(isBadged)>
+    type=(tagType === "button" && (type || "button"))
+    aria-disabled=(partiallyDisabled && "true")>
+    <${renderBody}/>
+    <if(badgeNumber)>
         <ebay-badge
-            number=input.badgeNumber
+            number=badgeNumber
             type="icon"
-            aria-label=(hasAriaLabel && input.badgeAriaLabel)
-            aria-hidden=(hasAriaLabel && "true")/>
+            aria-label=(ariaLabel && badgeAriaLabel)
+            aria-hidden=(!!ariaLabel && "true")/>
     </if>
 </>

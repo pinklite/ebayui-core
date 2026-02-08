@@ -1,108 +1,135 @@
-import { processHtmlAttributes } from "../../common/html-attributes"
+import { processHtmlAttributes } from '../../common/html-attributes';
+import type { WithNormalizedProps } from '../../global';
+import type { AttrString } from 'marko/tags-html';
 
-static var ignoredAttributes = ["step", "direction", "defaultState", "class"];
+export interface Step extends Omit<Marko.HTML.Div, `on${string}` | "title"> {
+    current?: boolean;
+    a11yText?: string;
+    title?: Marko.AttrTag<Omit<Marko.HTML.H4, `on${string}`> & {
+        as?: keyof Marko.NativeTags;
+    }>
+}
 
-static var ignoredStepAttributes = [
-    "current",
-    "class",
-    "title",
-    "a11yHeadingText",
-    "a11yHeadingTag",
-];
+static interface ProgressStepperInput extends Omit<Marko.HTML.Div, `on${string}`> {
+    direction?: "row" | "column";
+    step?: Marko.AttrTag<Step>;
+    "default-state"?: "complete" | "upcoming" | "attention" | "current";
+    "a11y-heading-tag"?: keyof Marko.NativeTags;
+    "a11y-heading-text"?: AttrString;
+    "auto-paragraph"?: boolean;
+}
 
-static var ignoredStepTitleAttributes = ["as", "a11yText", "title"];
+export interface Input extends WithNormalizedProps<ProgressStepperInput> {}
 
+$ const {
+    step: steps = [],
+    direction = "row",
+    defaultState,
+    class: inputClass,
+    a11yHeadingTag,
+    a11yHeadingText,
+    autoParagraph,
+    ...htmlInput
+} = input;
+
+static var ignoredStepTitleAttributes = ['as', 'a11yText', 'title'];
 $ {
-    var direction = input.direction || "row";
-    var current;
-    switch(input.defaultState) {
-        case "complete":
-        case "upcoming":
+    var current: number;
+    switch (defaultState) {
+        case 'complete':
+        case 'upcoming':
             current = -1;
             break;
         default:
-            var step = (input.step || []).findIndex(item => item.current)
+            var step = [...steps].findIndex((item) => item.current);
             current = step === -1 ? 0 : step;
     }
 }
 
 <div
-    class=[
-        "progress-stepper",
-        direction === "column" && "progress-stepper--vertical",
-        input.class
-    ]
-    aria-labelledby:scoped="stepper-heading"
-    ...processHtmlAttributes(input, ignoredAttributes)>
-    <${input.a11yHeadingTag || "h2"} id:scoped="stepper-heading" class="clipped">
-        ${input.a11yHeadingText}
-    </>
+    class=['progress-stepper', direction === 'column' && 'progress-stepper--vertical', inputClass]
+    aria-labelledby:scoped='stepper-heading'
+    ...processHtmlAttributes(htmlInput)
+>
+    <${a11yHeadingTag || 'h2'}.clipped id:scoped='stepper-heading'>${a11yHeadingText}</>
 
     <div
         class=[
-            "progress-stepper__items",
-            input.defaultState === "upcoming" &&
-                "progress-stepper__items--upcoming",
-            input.defaultState === 'current' &&
-                "progress-stepper__items--current",
+            'progress-stepper__items',
+            defaultState === 'upcoming' && 'progress-stepper__items--upcoming',
+            defaultState === 'current' && 'progress-stepper__items--current',
         ]
-        role="list">
-        <for|item, index, list| of=(input.step || [])>
+        role='list'
+    >
+        <for|step, index, list| of=steps>
+            $ const {
+                current: stepCurrent,
+                class: stepClass,
+                title,
+                a11yText,
+                renderBody,
+                ...htmlStep
+            } = step;
             <if(index > 0)>
-                <hr class="progress-stepper__separator" role="presentation"/>
+                <hr.progress-stepper__separator role='presentation'>
             </if>
             <div
                 class=[
-                    "progress-stepper__item",
+                    'progress-stepper__item',
                     index === current &&
-                    input.defaultState === "attention" &&
-                        "progress-stepper__item--attention",
-                    item.class
+                        defaultState === 'attention' &&
+                        'progress-stepper__item--attention',
+                    stepClass,
                 ]
-                aria-current=(current === index && "step")
-                role="listitem"
-                ...processHtmlAttributes(item, ignoredStepAttributes)>
-                <span class="progress-stepper__icon">
-                  <if(
-                        index < current ||
-                        input.defaultState === "complete"
-                    )>
-                        <ebay-stepper-confirmation-icon width="24" height="24" a11y-text=(item.a11yText || 'complete')/>
+                aria-current=current === index && 'step'
+                role='listitem'
+                ...processHtmlAttributes(htmlStep)
+            >
+                <span.progress-stepper__icon>
+                    <if(index < current || defaultState === 'complete')>
+                        <ebay-stepper-confirmation-24-icon
+                            width='24'
+                            height='24'
+                            a11y-text=a11yText || 'complete'
+                        />
                     </if>
                     <else-if(index === current)>
-                        <if(input.defaultState === "attention")>
-                            <ebay-stepper-attention-icon width="24" height="24" a11y-text=(item.a11yText || 'blocked')/>
+                        <if(defaultState === 'attention')>
+                            <ebay-stepper-attention-24-icon
+                                width='24'
+                                height='24'
+                                a11y-text=a11yText || 'blocked'
+                            />
                         </if>
-                        <else-if(input.defaultState === "current")>
-                            <!-- DEPRECATED, remove next major -->
-                            <ebay-stepper-current-icon width="24" height="24" a11y-text=(item.a11yText || 'current')/>
-                        </else-if>
-
                         <else>
-                            <ebay-stepper-confirmation-icon width="24" height="24" a11y-text=(item.a11yText || 'current')/>
+                            <ebay-stepper-confirmation-24-icon
+                                width='24'
+                                height='24'
+                                a11y-text=a11yText || 'current'
+                            />
                         </else>
                     </else-if>
                     <else>
-                        <ebay-stepper-upcoming-icon width="24" height="24" a11y-text=(item.a11yText || 'upcoming')/>
+                        <ebay-stepper-upcoming-24-icon
+                            width='24'
+                            height='24'
+                            a11y-text=a11yText || 'upcoming'
+                        />
                     </else>
                 </span>
-                <span class="progress-stepper__text">
-                    <if(item.title)>
-                        <${(item.title && item.title.as) || "h4"}
-                        ...processHtmlAttributes(item.title, ignoredStepTitleAttributes)>
-                            <${item.title}/>
+                <span.progress-stepper__text>
+                    <if(title)>
+                        <${(title && title.as) || 'h4'} ...processHtmlAttributes(
+                            title,
+                            ignoredStepTitleAttributes
+                        )>
+                            <${title}/>
                         </>
                     </if>
-                    <if(input.autoParagraph !== false)>
-                        <p>
-                            <${item.renderBody}/>
-                        </p>
+                    <if(autoParagraph !== false)>
+                        <p><${renderBody}/></p>
                     </if>
-                    <else>
-                        <span>
-                            <${item.renderBody}/>
-                        </span>
-                    </else>
+                    <else><span><${renderBody}/></span></else>
                 </span>
             </div>
         </for>

@@ -1,8 +1,7 @@
-import sinon from 'sinon';
-import { expect } from 'chai';
-import { fireEvent } from '@marko/testing-library';
-import { waitFrames } from '../../test-utils/browser';
-import * as eventUtils from '../';
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { fireEvent } from "@marko/testing-library";
+import { waitFrames } from "../../test-utils/browser";
+import * as eventUtils from "../";
 
 const resizeUtil = eventUtils.resizeUtil;
 const handleActionKeydown = eventUtils.handleActionKeydown;
@@ -11,106 +10,107 @@ const handleUpDownArrowsKeydown = eventUtils.handleUpDownArrowsKeydown;
 const handleLeftRightArrowsKeydown = eventUtils.handleLeftRightArrowsKeydown;
 const preventDefaultIfHijax = eventUtils.preventDefaultIfHijax;
 
-describe('handleActionKeydown()', () => {
-    [{ keyCode: 13 }, { keyCode: 32 }].forEach((event) => {
-        it(`calls callback for keyCode=${event.keyCode}`, () => {
-            const callback = sinon.spy();
+describe("handleActionKeydown()", () => {
+    [{ key: " " }, { key: "Enter" }].forEach((event) => {
+        it(`calls callback for key=${event.key}`, () => {
+            const callback = vi.fn();
             handleActionKeydown(event, callback);
-            expect(callback.calledOnce).to.equal(true);
+            expect(callback).toBeCalledTimes(1);
         });
     });
 
-    it("doesn't call callback for other keyCode", () => {
-        const callback = sinon.spy();
-        handleActionKeydown({ keyCode: 1 }, callback);
-        expect(callback.called).to.equal(false);
+    it("doesn't call callback for other key", () => {
+        const callback = vi.fn();
+        handleActionKeydown({ key: "A" }, callback);
+        expect(callback).toBeCalledTimes(0);
     });
 });
 
-describe('handleEscapeKeydown()', () => {
-    const escapeKeyCode = 27;
-    it(`calls callback for keyCode=${escapeKeyCode}`, () => {
-        const callback = sinon.spy();
-        handleEscapeKeydown({ keyCode: escapeKeyCode }, callback);
-        expect(callback.calledOnce).to.equal(true);
+describe("handleEscapeKeydown()", () => {
+    const escapeKey = "Escape";
+    it(`calls callback for key=${escapeKey}`, () => {
+        const callback = vi.fn();
+        handleEscapeKeydown({ key: escapeKey }, callback);
+        expect(callback).toBeCalledTimes(1);
     });
 });
 
-describe('handleUpDownArrowsKeydown()', () => {
-    [{ keyCode: 38 }, { keyCode: 40 }].forEach((event) => {
-        it(`calls callback for keyCode=${event.keyCode}`, () => {
-            const callback = sinon.spy();
+describe("handleUpDownArrowsKeydown()", () => {
+    [{ key: "ArrowUp" }, { key: "ArrowDown" }].forEach((event) => {
+        it(`calls callback for key=${event.key}`, () => {
+            const callback = vi.fn();
             handleUpDownArrowsKeydown(event, callback);
-            expect(callback.calledOnce).to.equal(true);
+            expect(callback).toBeCalledTimes(1);
         });
     });
 
-    it("doesn't call callback for other keyCode", () => {
-        const callback = sinon.spy();
-        handleUpDownArrowsKeydown({ keyCode: 1 }, callback);
-        expect(callback.called).to.equal(false);
+    it("doesn't call callback for other key", () => {
+        const callback = vi.fn();
+        handleUpDownArrowsKeydown({ key: "A" }, callback);
+        expect(callback).toBeCalledTimes(0);
     });
 });
 
-describe('handleLeftRightArrowsKeydown()', () => {
-    [{ keyCode: 37 }, { keyCode: 39 }].forEach((event) => {
-        it(`calls callback for keyCode=${event.keyCode}`, () => {
-            const callback = sinon.spy();
+describe("handleLeftRightArrowsKeydown()", () => {
+    [{ key: "ArrowLeft" }, { key: "ArrowRight" }].forEach((event) => {
+        it(`calls callback for key=${event.key}`, () => {
+            const callback = vi.fn();
             handleLeftRightArrowsKeydown(event, callback);
-            expect(callback.calledOnce).to.equal(true);
+            expect(callback).toBeCalledTimes(1);
         });
     });
 
-    it("doesn't call callback for other keyCode", () => {
-        const callback = sinon.spy();
-        handleLeftRightArrowsKeydown({ keyCode: 1 }, callback);
-        expect(callback.called).to.equal(false);
+    it("doesn't call callback for other key", () => {
+        const callback = vi.fn();
+        handleLeftRightArrowsKeydown({ key: "A" }, callback);
+        expect(callback).toBeCalledTimes(0);
     });
 });
 
-describe('preventDefaultIfHijax()', () => {
+describe("preventDefaultIfHijax()", () => {
     let preventDefaultSpy;
     beforeEach(() => {
-        preventDefaultSpy = sinon.spy();
+        preventDefaultSpy = vi.fn();
     });
 
-    it('executes preventDefault if hijax', () => {
+    it("executes preventDefault if hijax", () => {
         const e = { preventDefault: preventDefaultSpy };
         preventDefaultIfHijax(e, true);
-        expect(preventDefaultSpy.calledOnce).to.equal(true);
+        expect(preventDefaultSpy).toBeCalledTimes(1);
     });
 
-    it('does not execute preventDefault if not hijax', () => {
+    it("does not execute preventDefault if not hijax", () => {
         const e = { preventDefault: preventDefaultSpy };
         preventDefaultIfHijax(e, false);
-        expect(preventDefaultSpy.called).to.equal(false);
+        expect(preventDefaultSpy).toBeCalledTimes(0);
     });
 });
 
-describe('resizeEventUtil', () => {
-    it('the root element listens for a window resize, then calls a callback', (done) => {
-        const mockCallback = sinon.spy();
-        resizeUtil.addEventListener('resize', mockCallback.bind(this));
-        expect(mockCallback.callCount).to.equal(0);
-        fireEvent(window, new Event('resize'));
-        const fn = () => {
-            expect(mockCallback.callCount).to.equal(1);
-            done();
-        };
-
-        waitFrames(2, fn);
+describe("resizeEventUtil", () => {
+    it("the root element listens for a window resize, then calls a callback", async () => {
+        const mockCallback = vi.fn();
+        resizeUtil.addEventListener("resize", mockCallback.bind(this));
+        expect(mockCallback).toBeCalledTimes(0);
+        fireEvent(window, new Event("resize"));
+        await new Promise((resolve) => {
+            waitFrames(2, () => {
+                expect(mockCallback).toBeCalledTimes(1);
+                resolve();
+            });
+        });
     });
 
-    it('the root element does not listen for a window resize, after eventListener is removed', (done) => {
-        const mockCallback = sinon.spy();
-        resizeUtil.addEventListener('resize', mockCallback.bind(this));
-        resizeUtil.removeEventListener('resize', mockCallback.bind(this));
-        expect(mockCallback.callCount).to.equal(0);
-        fireEvent(window, new Event('resize'));
-        const fn = () => {
-            expect(mockCallback.callCount).to.equal(0);
-            done();
-        };
-        waitFrames(2, fn);
+    it("the root element does not listen for a window resize, after eventListener is removed", async () => {
+        const mockCallback = vi.fn();
+        resizeUtil.addEventListener("resize", mockCallback.bind(this));
+        resizeUtil.removeEventListener("resize", mockCallback.bind(this));
+        expect(mockCallback).toBeCalledTimes(0);
+        fireEvent(window, new Event("resize"));
+        await new Promise((resolve) => {
+            waitFrames(2, () => {
+                expect(mockCallback).toBeCalledTimes(0);
+                resolve();
+            });
+        });
     });
 });

@@ -1,80 +1,112 @@
 import { processHtmlAttributes } from "../../common/html-attributes"
 
-static function toJSON() {
+static function toJSON(this: any) {
     return {
         floatingLabel: this.floatingLabel
     };
 }
 
-static var ignoredAttributes = [
-    "class",
-    "style",
-    "invalid",
-    "fluid",
-    "multiline",
-    "floatingLabel",
-    "prefixIcon",
-    "postfixIcon",
-    "toJSON"
-];
+$ const {
+    buttonAriaLabel,
+    class: inputClass,
+    disabled,
+    floatingLabel,
+    floatingLabelStatic,
+    fluid,
+    id = component.getElId("textbox"),
+    inputSize,
+    invalid,
+    multiline,
+    opaqueLabel,
+    postfixIcon,
+    prefixIcon,
+    style,
+    type,
+    value,
+    prefixText,
+    postfixText,
+    readonly,
+    ...htmlInput
+} = input;
 
-$ input.toJSON = toJSON;
-$ var isPostfix = !!input.postfixIcon;
-$ var hasIcon = input.prefixIcon || isPostfix;
-$ var isLarge = input.inputSize === "large";
-$ var displayIcon = Boolean(!input.multiline && hasIcon);
-$ var id = input.id || component.getElId("textbox");
-$ var defaultTag = input.fluid ? "div" : "span";
-<${input.floatingLabel && defaultTag} class=["floating-label", isLarge && "floating-label--large"]>
-    <if(input.floatingLabel)>
+$ (input as any).toJSON = toJSON;
+$ var isPostfix = !!postfixIcon;
+$ var hasIcon = prefixIcon || isPostfix;
+$ var isLarge = inputSize === "large";
+$ var displayIcon = Boolean(!multiline && hasIcon);
+$ var prefixId = prefixText && component.getElId("prefix");
+$ var postfixId = postfixText && component.getElId("postfix");
+$ var defaultTag = fluid ? "div" : "span";
+// Since prefix doesn't work with floating label, we need to disable it
+// In floating label static, where its always floated, we allow prefix
+$ var disablePrefix = !!floatingLabel && !floatingLabelStatic;
+
+<${floatingLabel && defaultTag} class=["floating-label", isLarge && "floating-label--large", opaqueLabel && "floating-label--opaque"]>
+    <if(floatingLabel)>
         <label
             for=id
             class=[
                 "floating-label__label",
-                input.disabled && "floating-label__label--disabled"
+                disabled && "floating-label__label--disabled"
             ]>
-            ${input.floatingLabel}
+            ${floatingLabel}
         </label>
     </if>
     <${defaultTag}
-        style=input.style
+        style=style
         class=[
             "textbox",
-            input.class,
-            displayIcon && isPostfix && "textbox--icon-end"
+            /** start remove after `:has` support */
+            disabled && "textbox--disabled",
+            invalid && "textbox--invalid",
+            readonly && "textbox--readonly",
+            /** end remove after `:has` support */
+            isLarge && "textbox--large",
+            fluid && "textbox--fluid",
+            inputClass,
         ]>
-        <if(displayIcon && input.prefixIcon)>
-            <${input.prefixIcon}/>
+        <if(displayIcon && prefixIcon && !disablePrefix)>
+            <${prefixIcon}/>
         </if>
-        <${input.multiline ? "textarea" : "input"}
-            ...processHtmlAttributes(input, ignoredAttributes)
+        <if(prefixText && !disablePrefix)>
+            <span id=prefixId ...prefixText>
+                <${prefixText} />
+            </span>
+        </if>
+        <${multiline ? "textarea" : "input"}
+            aria-describedby=[prefixId, postfixId].filter(Boolean).join(" ") || undefined
+            ...processHtmlAttributes(htmlInput)
             id=id
             key="input"
-            class=[
-                "textbox__control",
-                input.fluid && "textbox__control--fluid",
-                isLarge && "textbox__control--large"
-            ]
-            type=(!input.multiline && (input.type || "text"))
-            value=(!input.multiline && input.value)
-            aria-invalid=(input.invalid && "true")
-            onKeydown("handleKeydown")
-            onKeypress("handleKeypress")
-            onKeyup("handleKeyup")
-            onChange("handleChange")
-            onInput("handleInput")
-            onFocus("handleFocus")
-            onBlur("handleBlur")
-            onInvalid("handleInvalid")>
-            <if(input.multiline && input.value)>${input.value}</if>
+            class="textbox__control"
+            type=(!multiline && (type || "text"))
+            value=(!multiline && value)
+            disabled=disabled
+            aria-invalid=(invalid && "true")
+            readonly=readonly
+            onKeydown("forwardEvent", "keydown")
+            onKeypress("forwardEvent", "keypress")
+            onKeyup("forwardEvent", "keyup")
+            onChange("forwardEvent", "change")
+            onInput("forwardEvent", "input-change")
+            onFocus("onFocus")
+            onBlur("onBlur")
+            onInvalid("forwardEvent", "invalid")>
+            <if(multiline && value)>${value}</if>
         </>
-        <if(displayIcon && input.postfixIcon)>
-            <${input.buttonAriaLabel && "button"}
+        <if(postfixText)>
+            <span id=postfixId ...postfixText>
+                <${postfixText} />
+            </span>
+        </if>
+        <if(displayIcon && postfixIcon)>
+            <${buttonAriaLabel && "button"}
                 class="icon-btn icon-btn--transparent"
-                aria-label=input.buttonAriaLabel
-                type=(input.buttonAriaLabel && "button")
-                on-click("handleButtonClick")>
-                <${input.postfixIcon}/>
+                aria-label=buttonAriaLabel
+                type=(buttonAriaLabel && "button")
+                disabled=disabled
+                on-click("forwardEvent", "button-click")>
+                <${postfixIcon}/>
             </>
         </if>
     </>

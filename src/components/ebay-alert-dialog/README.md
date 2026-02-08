@@ -11,13 +11,13 @@ Used to force the user to read an import message. The dialog will only be dismis
 
 ```marko
 <ebay-alert-dialog open alert-text="Confirm">
-  <@header>Title</@header>
-  <p>Hello some important info</p>
+    <@header>Title</@header>
+    <p>Hello some important info</p>
 </ebay-alert-dialog>
 ```
 
 ## Examples and Documentation
 
--   [Storybook](https://ebay.github.io/ebayui-core/?path=/story/dialogs-ebay-alert-dialog)
--   [Storybook Docs](https://ebay.github.io/ebayui-core/?path=/docs/dialogs-ebay-alert-dialog)
--   [Code Examples](https://github.com/eBay/ebayui-core/tree/master/src/components/ebay-alert-dialog/examples)
+- [Storybook](https://ebay.github.io/ebayui-core/?path=/story/dialogs-ebay-alert-dialog)
+- [Storybook Docs](https://ebay.github.io/ebayui-core/?path=/docs/dialogs-ebay-alert-dialog)
+- [Code Examples](https://github.com/eBay/ebayui-core/tree/master/src/components/ebay-alert-dialog/examples)

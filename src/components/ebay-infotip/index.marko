@@ -1,83 +1,90 @@
-import { processHtmlAttributes } from "../../common/html-attributes"
+import { processHtmlAttributes } from "../../common/html-attributes";
 
-static var ignoredAttributes = [
-    "icon",
-    "disabled",
-    "pointer",
-    "styleTop",
-    "styleLeft",
-    "styleRight",
-    "styleBottom",
-    "ariaLabel",
-    "a11yCloseButtonText",
-    "host",
-    "heading",
-    "content",
-    "variant",
-    "open"
-];
+$ const {
+    a11yCloseButtonText,
+    ariaLabel,
+    class: inputClass,
+    content,
+    disabled,
+    heading,
+    icon,
+    open,
+    pointer = "bottom",
+    variant,
+    noFlip,
+    noShift,
+    notInline,
+    ...htmlInput
+} = input;
 
-$ var isModal = input.variant === 'modal'
+$ var isModal = input.variant === "modal";
 $ var classPrefix = !isModal ? "infotip" : "dialog--mini";
-$ var pointer = input.pointer || "bottom";
 
 <span>
     <ebay-tooltip-base
         open=state.open
         key="base"
         type=classPrefix
-        pointer=pointer
-        overlay-id:scoped="overlay"
-        onBase-expand(!isModal && "handleExpand")
-        onBase-collapse(!isModal && "handleCollapse")>
+        overlayId:scoped="overlay"
+        noFlip=noFlip
+        noShift=noShift
+        notInline=notInline
+        offset=input.offset
+        pointer=input.pointer
+        placement=input.placement
+        onBase-expand(isModal ? undefined : "handleExpand")
+        onBase-collapse(isModal ? undefined : "handleCollapse")>
         <span
-            ...processHtmlAttributes(input, ignoredAttributes)
+            ...processHtmlAttributes(htmlInput)
             class:no-update=[
                 "infotip",
                 isModal === true && "dialog--mini",
-                input.class
-            ]>
+                inputClass,
+            ]
+        >
             <button
                 key="host"
-                class=[`${classPrefix}__host`, "icon-btn", "icon-btn--transparent"]
+                class=[
+                    `${classPrefix}__host`,
+                    "icon-btn",
+                    "icon-btn--transparent",
+                ]
                 type="button"
-                on-click(isModal && "handleExpand")
-                disabled=input.disabled
-                aria-label=input.ariaLabel>
-                <if(input.icon)>
-                    <${input.icon}/>
+                on-click(isModal && "handleOpenModal")
+                disabled=disabled
+                aria-label=ariaLabel
+            >
+                <if(icon)>
+                    <${icon}/>
                 </if>
                 <else>
-                    <ebay-information-small-icon/>
+                    <ebay-information-16-icon/>
                 </else>
             </button>
             <if(isModal !== true)>
                 <ebay-tooltip-overlay
                     type="infotip"
                     id:scoped="overlay"
-                    style-left=input.styleLeft
-                    style-top=input.styleTop
-                    style-right=input.styleRight
-                    style-bottom=input.styleBottom
-                    pointer=pointer
-                    heading=input.heading
-                    content=input.content
-                    a11y-close-text=input.a11yCloseButtonText
-                    onOverlay-close("handleOverlayClose")/>
+                    heading=heading
+                    content=content
+                    a11y-close-text=a11yCloseButtonText
+                    onOverlay-close("handleOverlayClose")
+                />
             </if>
-            <else>
-                <ebay-drawer-dialog
-                    open=state.open
-                    a11y-close-text=input.a11yCloseButtonText
-                    on-open("handleExpand")
-                    on-close("handleCollapse")
-                    aria-label=input.ariaLabel>
-                    <@header>
-                        <${input.heading && input.heading.renderBody}/>
-                    </@header>
-                    <${input.content}/>
-                </ebay-drawer-dialog>
-            </else>
         </span>
     </ebay-tooltip-base>
 </span>
+<if(isModal === true)>
+    <ebay-lightbox-dialog
+        open=state.open
+        a11y-close-text=a11yCloseButtonText
+        on-open("handleExpand")
+        on-close("handleCollapse")
+        aria-label=ariaLabel
+    >
+        <@header>
+            <${heading && heading.renderBody}/>
+        </@header>
+        <${content}/>
+    </ebay-lightbox-dialog>
+</if>

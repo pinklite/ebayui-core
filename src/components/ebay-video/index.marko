@@ -2,24 +2,36 @@ import { processHtmlAttributes } from "../../common/html-attributes"
 
 static const isBrowser = typeof window !== "undefined";
 
-static var ignoredAttributes = [
-    "sources",
-    "cdnUrl",
-    "cdnVersion",
-    "format",
-    "thumbnail",
-    "playView",
-    "a11yPlayText",
-    "a11yLoadText",
-    "reportText",
-    "errorText",
-    "volume",
-    "muted",
-    "volumeSlider"
-];
+$ const {
+    source: sources = [],
+    thumbnail,
+    playView,
+    a11yPlayText = "Click to play",
+    a11yLoadText = "Loading",
+    reportText,
+    a11yReportText,
+    a11yMuteText,
+    a11yUnmuteText,
+    a11yFullscreenText,
+    a11yExitFullscreenText,
+    errorText,
+    volume,
+    muted,
+    width,
+    height,
+    track: tracks = [],
+    volumeSlider,
+    ...htmlInput
+} = input;
 
-<div key="root" class=["video-player", !state.played && input.thumbnail !== "" && "video-player--poster"]>
-    <if(isBrowser && !input.width)>
+$ const styleSize = {
+    width: `${width}px`,
+    height: `${height}px`
+};
+
+<div key="root" class=["video-player", !state.played && thumbnail !== "" && "video-player--poster"] style=styleSize>
+
+    <if(isBrowser && !width)>
         <subscribe
             to=window
             on-resize("handleResize")/>
@@ -27,18 +39,15 @@ static var ignoredAttributes = [
     <div
         class="video-player__container"
         no-update
-        style={
-            width: `${input.width}px`,
-            height: `${input.height}px`
-        }>
+        style=styleSize>
         <video
             no-controls
-            poster=input.thumbnail
-            ...processHtmlAttributes(input, ignoredAttributes)>
-            <for|src| of=(input.sources || [])>
+            poster=thumbnail
+            ...processHtmlAttributes(htmlInput)>
+                <for|src| of=sources>
                 <source ...src/>
             </for>
-            <for|track| of=(input.track || [])>
+            <for|track| of=tracks>
                 <track ...track/>
             </for>
         </video>
@@ -47,9 +56,9 @@ static var ignoredAttributes = [
         "video-player__overlay",
         !state.failed && "video-player__overlay--hidden"
     ]>
-        <ebay-attention-icon/>
+        <ebay-attention-24-icon/>
         <div class="video-player__overlay-text">
-            <if(input.errorText)>${input.errorText}</if>
+            <if(errorText)>${errorText}</if>
             <else>An error has occurred</else>
         </div>
     </div>
@@ -57,13 +66,15 @@ static var ignoredAttributes = [
         class=[
             "video-player__overlay",
             state.isLoaded && "video-player__overlay--hidden"
-        ]
-        on-click("loadCDN", true)>
-        <if(!state.showLoading)>
-            <ebay-video-play-icon a11y-text=(input.a11yPlayText || "Click to play")/>
-        </if>
-        <else>
-            <ebay-progress-spinner a11y-text=(input.a11yLoadText || "Loading")/>
-        </else>
+        ]>
+        <ebay-progress-spinner a11yText=a11yLoadText/>
+    </div>
+    <div style="display:none">
+        <ebay-play-filled-64-colored-icon key="play-icon"/>
+        <ebay-flag-16-icon a11y-text=(a11yReportText || reportText || "Report") key="flag-icon"/>
+        <ebay-audio-off-16-icon key="audio-off-icon" a11y-text=(a11yUnmuteText || "Unmute")/>
+        <ebay-audio-high-16-icon key="audio-high-icon" a11y-text=(a11yMuteText ||"Mute")/>
+        <ebay-expand-16-icon key="expand-icon" a11y-text=(a11yFullscreenText || "Enter fullscreen")/>
+        <ebay-contract-16-icon key="contract-icon" a11y-text=(a11yExitFullscreenText || "Exit fullscreen")/>
     </div>
 </div>

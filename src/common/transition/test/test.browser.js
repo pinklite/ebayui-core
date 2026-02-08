@@ -1,18 +1,17 @@
-import sinon from 'sinon';
-import { expect } from 'chai';
-import * as testUtils from '../../test-utils/browser';
-import transition from '../';
+import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
+import * as testUtils from "../../test-utils/browser";
+import transition from "../";
 
-describe('transition', () => {
+describe("transition", () => {
     let styleSheet;
     let transitionEl;
 
     beforeEach(() => {
-        transitionEl = document.createElement('div');
-        transitionEl.id = 'transition-test';
-        transitionEl.setAttribute('hidden', '');
+        transitionEl = document.createElement("div");
+        transitionEl.id = "transition-test";
+        transitionEl.setAttribute("hidden", "");
 
-        styleSheet = document.createElement('style');
+        styleSheet = document.createElement("style");
         styleSheet.innerHTML = `
             #transition-test[hidden] {
                 display: none;
@@ -38,32 +37,44 @@ describe('transition', () => {
         document.body.removeChild(transitionEl);
     });
 
-    it('applies classes in correct order', (done) => {
-        transition({ el: transitionEl, className: 'show', waitFor: [transitionEl] });
-        transitionEl.removeAttribute('hidden');
-        expect(transitionEl.classList.contains('show-init')).to.equal(true);
+    it("applies classes in correct order", async () => {
+        transition({
+            el: transitionEl,
+            className: "show",
+            waitFor: [transitionEl],
+        });
+        transitionEl.removeAttribute("hidden");
+        expect(transitionEl).toHaveClass("show-init");
 
-        testUtils.waitFrames(2, () => {
-            const handleEnd = () => {
-                transitionEl.removeEventListener('transitionend', handleEnd);
-                expect(transitionEl.classList.contains('show')).to.equal(false);
-                done();
-            };
-            expect(transitionEl.classList.contains('show-init')).to.equal(false);
-            expect(transitionEl.classList.contains('show')).to.equal(true);
-            transitionEl.addEventListener('transitionend', handleEnd);
+        await new Promise((resolve) => {
+            testUtils.waitFrames(2, () => {
+                const handleEnd = () => {
+                    transitionEl.removeEventListener(
+                        "transitionend",
+                        handleEnd,
+                    );
+                    expect(transitionEl).not.toHaveClass("show");
+                    resolve();
+                };
+                expect(transitionEl).not.toHaveClass("show-init");
+                expect(transitionEl).toHaveClass("show");
+                transitionEl.addEventListener("transitionend", handleEnd);
+            });
         });
     });
 
-    it('triggers a callback once complete', (done) => {
-        const spy = sinon.spy();
-        transition({ el: transitionEl, className: 'show', waitFor: [transitionEl] }, spy);
-        transitionEl.removeAttribute('hidden');
-        transitionEl.addEventListener('transitionend', () =>
+    it("triggers a callback once complete", (done) => {
+        const spy = vi.fn();
+        transition(
+            { el: transitionEl, className: "show", waitFor: [transitionEl] },
+            spy,
+        );
+        transitionEl.removeAttribute("hidden");
+        transitionEl.addEventListener("transitionend", () =>
             setTimeout(() => {
-                expect(spy.callCount).to.equal(1);
+                expect(spy).toBeCalledTimes(1);
                 done();
-            })
+            }),
         );
     });
 });

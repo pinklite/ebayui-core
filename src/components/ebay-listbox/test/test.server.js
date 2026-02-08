@@ -1,52 +1,44 @@
-import { expect, use } from 'chai';
-import { render } from '@marko/testing-library';
-import template from '..';
-import * as mock from './mock';
-const { testPassThroughAttributes } = require('../../../common/test-utils/server');
+import { describe, it } from "vitest";
+import { composeStories } from "@storybook/marko";
+import { snapshotHTML } from "../../../common/test-utils/snapshots";
+import * as stories from "../listbox.stories";
+import { testPassThroughAttributes } from "../../../common/test-utils/server";
 
-use(require('chai-dom'));
+const { Standard, withDescription } = composeStories(stories);
 
-describe('listbox', () => {
-    it('renders basic version', async () => {
-        const input = mock.basic3Options;
-        const { getAllByRole } = await render(template, input);
+const htmlSnap = snapshotHTML(__dirname);
+const option = [...Standard.args.option];
 
-        const listboxEl = getAllByRole('listbox').find(isVisible);
-        const visibleOptionEls = getAllByRole('option').filter(isVisible);
-
-        expect(listboxEl).has.class('listbox__options');
-
-        expect(visibleOptionEls).has.length(3);
-        visibleOptionEls.forEach((optionEl) => {
-            expect(optionEl).does.not.have.attr('aria-selected');
-        });
+describe("listbox", () => {
+    it("renders basic version", async () => {
+        await htmlSnap(Standard);
     });
 
-    it('renders empty', async () => {
-        const input = mock.basic0Options;
-        const { getAllByRole } = await render(template, input);
-        expect(getAllByRole('listbox').filter(isVisible)[0].childNodes).has.length(0);
+    it("renders empty", async () => {
+        await htmlSnap(Standard, { option: [] });
     });
 
-    it('renders with second item selected', async () => {
-        const input = mock.basic3Options1Selected;
-        const { getAllByRole } = await render(template, input);
-        expect(getAllByRole('option').filter(isVisible).findIndex(isAriaSelected)).is.equal(1);
+    it("renders with second item selected", async () => {
+        option[1] = Object.assign({ selected: true }, option[1]);
+
+        await htmlSnap(Standard, { option });
     });
 
-    testPassThroughAttributes(template);
-    testPassThroughAttributes(template, {
+    it("renders with second item disabled", async () => {
+        option[1] = Object.assign({ disabled: true }, option[1]);
+
+        await htmlSnap(Standard, { option });
+    });
+
+    it("renders with description", async () => {
+        await htmlSnap(withDescription);
+    });
+
+    testPassThroughAttributes(Standard);
+    testPassThroughAttributes(Standard, {
         child: {
-            name: 'options',
+            name: "option",
             multiple: true,
         },
     });
 });
-
-function isAriaSelected(el) {
-    return el.getAttribute('aria-selected') === 'true';
-}
-
-function isVisible(el) {
-    return !el.hasAttribute('hidden') && !el.closest('[hidden]');
-}

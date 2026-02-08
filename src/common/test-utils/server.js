@@ -1,8 +1,5 @@
-import { render } from '@marko/testing-library';
-import chaiDom from 'chai-dom';
-import { expect, use } from 'chai';
-
-use(chaiDom);
+import { render } from "@marko/testing-library";
+import { it, expect } from "vitest";
 
 let markoCompiler;
 let CompileContext;
@@ -12,22 +9,25 @@ let isMarko5 = false;
 
 try {
     // v3 paths
-    compiler = require('@marko/compiler');
+    compiler = require("@marko/compiler");
     isMarko5 = true;
+    // eslint-disable-next-line no-unused-vars
 } catch (e) {
     // v4 paths
-
-    const target = require('marko/env').isDebug ? 'src' : 'dist';
-    markoCompiler = require('marko/compiler');
+    const target = require("marko/env").isDebug ? "src" : "dist";
+    markoCompiler = require("marko/compiler");
     CompileContext = require(`marko/${target}/compiler/CompileContext`);
     Builder = require(`marko/${target}/compiler/Builder`);
 }
 
-function testPassThroughAttributes(template, { input, child, getClassAndStyleEl } = {}) {
+function testPassThroughAttributes(
+    template,
+    { input, child, getClassAndStyleEl } = {},
+) {
     it(`passes through additional html attributes${
-        child ? ` from child ${child.name}` : ''
+        child ? ` from child ${child.name}` : ""
     }`, async () => {
-        const testId = 'AttributePassthrough';
+        const testId = "AttributePassthrough";
         const clonedInput = Object.assign({}, input);
         let targetInput = clonedInput;
 
@@ -37,46 +37,53 @@ function testPassThroughAttributes(template, { input, child, getClassAndStyleEl 
         }
         Object.assign(targetInput, {
             htmlAttributes: {
-                type: 'number',
+                type: "number",
             },
-            'data-testid': testId,
-            'data-passed-through': 'true',
+            "data-testid": testId,
+            "data-passed-through": "true",
             // class and style are special attributes
             class: { class1: true, class2: false },
-            style: { color: 'red' },
+            style: { color: "red" },
         });
 
         const component = await render(template, clonedInput);
         const passThroughEl = component.getByTestId(testId);
-        expect(passThroughEl).has.attr('data-passed-through');
-        expect(passThroughEl).has.attr('type');
-
-        const classAndStyleEl = getClassAndStyleEl ? getClassAndStyleEl(component) : passThroughEl;
-        expect(classAndStyleEl).has.class('class1');
-        expect(classAndStyleEl).not.has.class('class2');
-        expect(classAndStyleEl).attr('style').contains('color:red');
+        expect(passThroughEl).toMatchSnapshot();
+        const classAndStyleEl = getClassAndStyleEl
+            ? getClassAndStyleEl(component)
+            : passThroughEl;
+        expect(classAndStyleEl).toMatchSnapshot();
     });
 }
 
 function getTransformedTemplate(transformer, srcString, componentPath) {
-    const { context, templateAST, code } = getTransformerData(srcString, componentPath, {
-        output: 'html',
-    });
+    const { context, templateAST, code } = getTransformerData(
+        srcString,
+        componentPath,
+        {
+            output: "html",
+        },
+    );
     if (code) {
         return code;
     }
-    const { prettyPrintAST } = require('@marko/prettyprint');
+    const { prettyPrintAST } = require("@marko/prettyprint");
     context.root = templateAST;
-    transformer(templateAST.body.array[0], context, { output: '' });
+    transformer(templateAST.body.array[0], context, { output: "" });
     return prettyPrintAST(templateAST, { filename: componentPath })
-        .replace(/\n/g, '')
-        .replace(/\s{4}/g, '');
+        .replace(/\n/g, "")
+        .replace(/\s{4}/g, "");
 }
 
 function runTransformer(transformer, srcString, componentPath) {
-    const { context, templateAST, code } = getTransformerData(srcString, componentPath, {
-        output: 'html',
-    });
+    const { context, templateAST, code } = getTransformerData(
+        srcString,
+        componentPath,
+        {
+            output: "html",
+            writeVersionComment: false,
+        },
+    );
     if (code) {
         return { code };
     }
@@ -87,9 +94,13 @@ function runTransformer(transformer, srcString, componentPath) {
     };
 }
 function runMigrateTransformer(transformer, srcString, componentPath) {
-    const { context, templateAST, code } = getTransformerData(srcString, componentPath, {
-        output: 'migrate',
-    });
+    const { context, templateAST, code } = getTransformerData(
+        srcString,
+        componentPath,
+        {
+            output: "migrate",
+        },
+    );
     if (context && templateAST) {
         transformer(templateAST.body.array[0], context);
         return {
@@ -102,11 +113,19 @@ function runMigrateTransformer(transformer, srcString, componentPath) {
 
 function getTransformerData(srcString, componentPath, options) {
     if (compiler) {
-        const { code } = compiler.compileSync(srcString, componentPath, options);
+        const { code } = compiler.compileSync(
+            srcString,
+            componentPath,
+            options,
+        );
         return { code };
     }
     const templateAST = markoCompiler.parseRaw(srcString, componentPath);
-    const context = new CompileContext(srcString, componentPath, Builder.DEFAULT_BUILDER);
+    const context = new CompileContext(
+        srcString,
+        componentPath,
+        Builder.DEFAULT_BUILDER,
+    );
     return { context, templateAST };
 }
 

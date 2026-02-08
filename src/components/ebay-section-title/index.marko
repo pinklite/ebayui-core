@@ -1,69 +1,76 @@
-import { processHtmlAttributes } from "../../common/html-attributes"
+import { processHtmlAttributes } from '../../common/html-attributes';
+import type { WithNormalizedProps } from '../../global';
+import type { AttrString } from 'marko/tags-html';
 
-static var ignoredAttributes = [
-    "ctaText",
-    "href",
-    "title",
-    "subtitle",
-    "info",
-    "overflow"
-];
+static interface SectionTitleInput extends Omit<Marko.HTML.Div, `on${string}` | "title"> {
+    "cta-text"?: AttrString;
+    title?: Marko.AttrTag<Omit<Marko.HTML.H2, `on${string}`>>;
+    href?: string;
+    subtitle?: Marko.AttrTag<Omit<Marko.HTML.Span, `on${string}`>>;
+    info?: Marko.AttrTag<Omit<Marko.HTML.Div, `on${string}`>>;
+    overflow?: Marko.AttrTag<Omit<Marko.HTML.Div, `on${string}`>>;
+}
 
-$ const ctaText = input.ctaText || 'See All';
+export interface Input extends WithNormalizedProps<SectionTitleInput> {}
 
-<div
-    ...processHtmlAttributes(input, ignoredAttributes)
-    class=[
-        "section-title",
-        input.class
-    ]>
+$ const {
+    ctaText = 'See All',
+    class: inputClass,
+    href,
+    title,
+    subtitle,
+    info,
+    overflow,
+    renderBody,
+    ...htmlInput
+} = input;
+
+<div ...processHtmlAttributes(htmlInput) class=['section-title', inputClass]>
     <div
         class=[
-            "section-title__title-container",
+            'section-title__title-container',
             // TODO: Does this make more sense on the h2?
             // If so then we should probably spread in the rest of the
             // title attrs.
-            input.title && input.title.class
+            title && title.class,
         ]
-        style=(input.title && input.title.style)>
+        style=(title && title.style)
+    >
         <!-- Title-->
-        <h2 class="section-title__title" key="title" id:scoped="title">
-            <${input.title || input.renderBody}/>
+        <h2.section-title__title key='title' id:scoped='title'>
+            <${title || renderBody}/>
         </h2>
         <!-- Subtitle-->
-        <if(input.subtitle)>
+        <if(subtitle)>
             <span
-                ...processHtmlAttributes(input.subtitle)
-                class=["section-title__subtitle", input.subtitle.class]>
-                <${input.subtitle.renderBody}/>
+                ...processHtmlAttributes(subtitle)
+                class=['section-title__subtitle', subtitle.class]
+            >
+                <${subtitle.renderBody}/>
             </span>
         </if>
     </div>
-
     <!-- Info-->
-    <if(input.info)>
-        <div
-            ...processHtmlAttributes(input.info)
-            class=["section-title__info", input.info.class]>
-            <${input.info.renderBody}/>
+    <if(info)>
+        <div ...processHtmlAttributes(info) class=['section-title__info', info.class]>
+            <${info.renderBody}/>
         </div>
     </if>
-
-     <!-- CTA -->
-     <if(input.href)>
-        <div class="section-title__cta">
-            <a href=input.href tabindex="-1" aria-hidden="true">
-                <span class="section-title__cta-text">${ctaText}</span>
+    <!-- CTA -->
+    <if(href)>
+        <div.section-title__cta>
+            <a href=href>
+                <span.section-title__cta-text>${ctaText}</span>
             </a>
         </div>
     </if>
-
     <!-- Overflow-->
-    <if(input.overflow)>
+    <if(overflow)>
         <div
-            ...processHtmlAttributes(input.overflow)
-            class=["section-title__overflow", input.overflow.class]>
-            <${input.overflow.renderBody}/>
+            ...processHtmlAttributes(overflow)
+            class=['section-title__overflow', overflow.class]
+        >
+            <${overflow.renderBody}/>
         </div>
     </if>
 </div>

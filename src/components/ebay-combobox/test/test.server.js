@@ -1,74 +1,72 @@
-import { expect, use } from 'chai';
-import { render } from '@marko/testing-library';
-import template from '..';
-import * as mock from './mock';
-const { testPassThroughAttributes } = require('../../../common/test-utils/server');
+import { describe, it } from "vitest";
+import { composeStories } from "@storybook/marko";
+import { snapshotHTML } from "../../../common/test-utils/snapshots";
+import { testPassThroughAttributes } from "../../../common/test-utils/server";
+import { createRenderBody } from "../../../common/test-utils/shared";
+import * as stories from "../combobox.stories";
 
-use(require('chai-dom'));
+const { Isolated, FloatingLabel } = composeStories(stories);
 
-describe('combobox', () => {
-    it('renders basic version', async () => {
-        const input = mock.combobox3Options;
-        const { getByRole, getAllByRole } = await render(template, input);
-        expect(getByRole('combobox')).has.attr('aria-haspopup');
-        expect(getByRole('combobox').parentElement).does.not.have.class(
-            'combobox__control--borderless'
-        );
-        expect(getByRole('listbox')).has.class('combobox__listbox');
-        expect(getByRole('listbox').parentElement).has.class('combobox');
-        expect(getAllByRole('option')).has.length(3);
-        expect(getAllByRole('option').filter(isAriaSelected)).has.length(0);
+const htmlSnap = snapshotHTML(__dirname);
+
+describe("combobox", () => {
+    it("renders basic version", async () => {
+        await htmlSnap(Isolated);
     });
 
-    it('renders empty', async () => {
-        const input = mock.combobox0Options;
-        const { queryByRole } = await render(template, input);
-        expect(queryByRole('combobox')).does.not.equal(null);
-        expect(queryByRole('listbox')).equals(null);
+    it("renders empty", async () => {
+        await htmlSnap(Isolated, { option: [] });
     });
 
-    it('renders with second item selected', async () => {
-        const input = mock.combobox3Options2Selected;
-        const { getAllByRole } = await render(template, input);
-        expect(getAllByRole('option')[1].textContent).is.equal(input.value);
+    it("renders with fixed strategy", async () => {
+        await htmlSnap(Isolated, { strategy: "fixed" });
     });
 
-    it('renders with borderless enabled', async () => {
-        const input = mock.combobox3OptionsBorderless;
-        const { getByRole } = await render(template, input);
-        expect(getByRole('combobox').parentElement).has.class('combobox__control--borderless');
+    it("renders with second item selected", async () => {
+        await htmlSnap(Isolated, { value: Isolated.args.option[2].text });
     });
 
-    it('renders with actionable button', async () => {
-        const input = mock.combobox3OptionsActionable;
-        const { getByText } = await render(template, input);
-        expect(getByText(input.button.renderBody.text)).has.class('icon-btn');
+    it("renders with borderless enabled", async () => {
+        await htmlSnap(Isolated, { borderless: true });
     });
 
-    it('renders with default actionable button', async () => {
-        const input = mock.combobox3OptionsActionable_No_Body;
-        const { getByLabelText } = await render(template, input);
-        expect(getByLabelText(input.button.ariaLabel)).has.class('icon-btn');
+    it("renders with actionable button", async () => {
+        await htmlSnap(Isolated, {
+            button: {
+                renderBody: createRenderBody("button"),
+            },
+        });
     });
 
-    testPassThroughAttributes(template, {
-        input: mock.combobox3Options,
+    it("renders with default actionable button", async () => {
+        await htmlSnap(Isolated, {
+            button: {
+                ariaLabel: "Actionable Button",
+            },
+        });
+    });
+
+    it("renders with floating label", async () => {
+        await htmlSnap(FloatingLabel);
+    });
+
+    testPassThroughAttributes(Isolated, {
+        input: Isolated.args,
         getClassAndStyleEl(component) {
             return component.container.firstElementChild;
         },
     });
 });
 
-describe('combobox-option', () => {
-    testPassThroughAttributes(template, {
+describe("combobox-option", () => {
+    testPassThroughAttributes(Isolated, {
         child: {
-            name: 'options',
-            input: mock.combobox3Options.options[0],
+            name: "option",
+            input: {
+                text: "test",
+                value: "value",
+            },
             multiple: true,
         },
     });
 });
-
-function isAriaSelected(el) {
-    return el.getAttribute('aria-selected') === 'true';
-}

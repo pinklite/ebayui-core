@@ -1,9 +1,10 @@
 {
-  "taglib-id": "ebayui-core",
-  "tags-dir": "./src/components",
-  "taglib-imports": [
-    "./src/components/ebay-icon/marko.json",
-    "./src/components/ebay-program-badge/marko.json",
-    "./src/components/ebay-star-rating/marko.json"
-  ]
+    "taglib-id": "ebayui-core",
+    "tags-dir": "./src/components",
+    "taglib-imports": [
+        "./src/components/ebay-icon/marko.json",
+        "./src/components/ebay-star-rating/marko.json",
+        "./src/components/ebay-flag/marko.json",
+        "./src/components/ebay-skeleton/marko.json"
+    ]
 }

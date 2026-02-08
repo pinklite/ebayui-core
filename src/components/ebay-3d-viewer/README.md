@@ -9,11 +9,10 @@
 
 ## ebay-3d-viewer (_ALPHA_, some APIs might change)
 
-RestAR 3d viewer wrapper for marko. This renders the 3d viewer using the given restAR library with lookup to the assets on their servers.
-The library downloads the assets on load (optimized for page load, after the main assets on the page are loaded).
+Under the hood, this uses google model viewer. All APIs are passthough to the model viewer. To use methods on the model-viewer, you can access `viewer` object on the component.
 
 ## Examples and Documentation
 
--   [Storybook](https://ebay.github.io/ebayui-core/?path=/story/media-ebay-3d-viewer)
--   [Storybook Docs](https://ebay.github.io/ebayui-core/?path=/docs/media-ebay-3d-viewer)
--   [Code Examples](https://github.com/eBay/ebayui-core/tree/master/src/components/ebay-3d-viewer/examples)
+- [Storybook](https://ebay.github.io/ebayui-core/?path=/story/media-ebay-3d-viewer)
+- [Storybook Docs](https://ebay.github.io/ebayui-core/?path=/docs/media-ebay-3d-viewer)
+- [Code Examples](https://github.com/eBay/ebayui-core/tree/master/src/components/ebay-3d-viewer/examples)
